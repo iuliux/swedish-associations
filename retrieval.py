@@ -29,7 +29,7 @@ def process_request():
     # Call Ollama API (self-hosted)
     response = requests.post(
         "http://localhost:11434/api/generate",
-        json={"model": "llama2", "prompt": prompt}
+        json={"model": "associations-rag", "prompt": prompt}
     )
 
     output = response.json().get("response", "Ingen respons.")
