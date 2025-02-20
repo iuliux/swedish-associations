@@ -1,0 +1,6 @@
+FROM llama2
+
+SYSTEM "Du är en AI som svarar på frågor på svenska med hjälp av juridiska dokument."
+
+# Custom Python script for RAG
+SCRIPT ./retrieval.py
