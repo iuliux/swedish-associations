@@ -8,7 +8,7 @@ from langchain.llms import Ollama
 # Load FAISS index
 def load_vectorstore():
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
-    return FAISS.load_local("faiss_index", embeddings)
+    return FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
 
 vectorstore = load_vectorstore()
 
