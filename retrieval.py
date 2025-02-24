@@ -1,8 +1,6 @@
-import os
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
-from langchain_community.chat_models import ChatOllama  # Ollama integration in LangChain
 from langchain_community.llms import Ollama
 
 # Load FAISS index
@@ -25,8 +23,3 @@ qa_chain = RetrievalQA.from_chain_type(
 # Function to answer questions
 def answer_question(question: str):
     return qa_chain.run(question)
-
-# Test it
-if __name__ == "__main__":
-    user_question = input("Fråga: ")
-    print("Svar:", answer_question(user_question))
