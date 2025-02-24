@@ -1,9 +1,9 @@
 import os
-from langchain.vectorstores import FAISS
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
-from langchain.chat_models import ChatOllama  # Ollama integration in LangChain
-from langchain.llms import Ollama
+from langchain_community.chat_models import ChatOllama  # Ollama integration in LangChain
+from langchain_community.llms import Ollama
 
 # Load FAISS index
 def load_vectorstore():
