@@ -22,4 +22,4 @@ qa_chain = RetrievalQA.from_chain_type(
 
 # Function to answer questions
 def answer_question(question: str):
-    return qa_chain.run(question)
+    return qa_chain.invoke(question)
