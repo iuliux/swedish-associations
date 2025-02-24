@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from retrieval import answer_question  # Import function from retrieval.py
 
@@ -9,7 +9,11 @@ class QuestionRequest(BaseModel):
 
 @app.post("/ask")
 def ask_question(req: QuestionRequest):
-    return {"answer": answer_question(req.question)}
+    try:
+        answer = answer_question(req.question)
+        return {"answer": answer}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Run the FastAPI server
 if __name__ == "__main__":
