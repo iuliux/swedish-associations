@@ -12,6 +12,7 @@ def ask_question(req: QuestionRequest):
     try:
         result = answer_question(req.question)
         return {
+            "question": req.question,
             "answer": result["answer"],
             "sources": result["sources"]
         }
