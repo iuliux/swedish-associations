@@ -19,11 +19,12 @@ llm = Ollama(model="associations-rag")  # Using your custom trained model
 prompt_template = ChatPromptTemplate.from_template(
     """
 Du är en AI som svarar på frågor på svenska med hjälp av juridiska dokument från bostadsrättsföreningar.
+Om du inte vet svaret, säg att du inte vet.
 Svar måste vara på svenska. Använd följande information för att besvara frågan:
 
 {context}
 
-Fråga: {question}
+Fråga: Strikt baserat på dokumenten, {question}
 Kort svar:
     """
 )
