@@ -10,8 +10,11 @@ class QuestionRequest(BaseModel):
 @app.post("/ask")
 def ask_question(req: QuestionRequest):
     try:
-        answer = answer_question(req.question)
-        return {"answer": answer}
+        result = answer_question(req.question)
+        return {
+            "answer": result["answer"],
+            "sources": result["sources"]
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
