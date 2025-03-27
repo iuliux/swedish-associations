@@ -8,7 +8,7 @@ app = FastAPI()
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://helpful-frank.netlify.app"],
+    allow_origins=["https://helpful-frank.netlify.app", "https://03943d79-f799-4b33-a5f5-3c732a7ff38e.lovableproject.com"],
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
