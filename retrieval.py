@@ -32,15 +32,10 @@ Kort svar:
 
 # Function to answer questions and retrieve source information
 def answer_question(question: str, association: int):
-    # Compile the list of sources from the "document" field
-    documents = association_documents.get(association)
-    # Set up the retriever with a filter (if documents is provided)
-    if documents:
-        retriever = vectorstore.as_retriever(
-            search_kwargs={"filter": {"association": {"$in": ["general", association]}}}
-        )
-    else:
-        retriever = vectorstore.as_retriever()
+    # Retrieve relevant documents based on the association
+    retriever = vectorstore.as_retriever(
+        search_kwargs={"filter": {"association": {"$in": ["general", association]}}}
+    )
 
     # Define the retrieval and generation chain
     rag_chain = (
