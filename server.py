@@ -16,6 +16,7 @@ app.add_middleware(
 
 class QuestionRequest(BaseModel):
     question: str
+    association_id: int
 
 @app.post("/ask")
 def ask_question(req: QuestionRequest):
