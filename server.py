@@ -20,7 +20,7 @@ class QuestionRequest(BaseModel):
 @app.post("/ask")
 def ask_question(req: QuestionRequest):
     try:
-        result = answer_question(req.question)
+        result = answer_question(req.question, req.association_id)
         return {
             "question": req.question,
             "answer": result["answer"],

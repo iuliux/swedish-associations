@@ -5,6 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 
+
 # Load FAISS index
 def load_vectorstore():
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
@@ -29,19 +30,28 @@ Kort svar:
     """
 )
 
-# Define the retrieval and generation chain
-retriever = vectorstore.as_retriever()
-rag_chain = (
-    {"context": retriever, "question": RunnablePassthrough()}
-    | prompt_template
-    | llm
-    | StrOutputParser()
-)
-
 # Function to answer questions and retrieve source information
-def answer_question(question: str):
+def answer_question(question: str, association: int):
+    # Compile the list of sources from the "document" field
+    documents = association_documents.get(association)
+    # Set up the retriever with a filter (if documents is provided)
+    if documents:
+        retriever = vectorstore.as_retriever(
+            search_kwargs={"filter": {"association": {"$in": ["general", association]}}}
+        )
+    else:
+        retriever = vectorstore.as_retriever()
+
+    # Define the retrieval and generation chain
+    rag_chain = (
+        {"context": retriever, "question": RunnablePassthrough()}
+        | prompt_template
+        | llm
+        | StrOutputParser()
+    )
+
     # Retrieve the most relevant chunks
-    relevant_chunks = vectorstore.similarity_search(question, k=3)  # Retrieve top 3 chunks
+    relevant_chunks = retriever.get_relevant_documents(question)
     answer = rag_chain.invoke(question)
 
     # Prepare source information
