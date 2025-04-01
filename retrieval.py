@@ -34,7 +34,7 @@ Kort svar:
 def answer_question(question: str, association: int):
     # Retrieve relevant documents based on the association
     retriever = vectorstore.as_retriever(
-        search_kwargs={"filter": {"association": {"$in": ["general", association]}}}
+        search_kwargs={"filter": {"association": {"$in": ["general", str(association)]}}}
     )
 
     # Define the retrieval and generation chain
