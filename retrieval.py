@@ -1,5 +1,4 @@
 import re
-import numpy as np
 
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -7,8 +6,7 @@ from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
+from langchain_core.prompts import ChatPromptTemplate
 
 
 # Load FAISS index
@@ -35,35 +33,33 @@ Kort svar:
     """
 )
 
-# Load Swedish-optimized model
-model = SentenceTransformer('KBLab/sentence-bert-swedish-cased')
-
-def highlight_relevant_sentences(question: str, text: str, top_k: int = 2) -> str:
-    """Highlight sentences most semantically relevant to the question"""
-    sentences = [s for s in re.split(r'(?<=[.!?])\s+', text) if len(s) > 10]
+def highlight_with_mistral(question: str, text: str, llm: Ollama) -> str:
+    """Use Mistral to identify and mark the most relevant parts of the text"""
+    # Split into manageable chunks (sentences or paragraphs)
+    text_chunks = [chunk for chunk in re.split(r'(?<=[.!?])\s+', text) if len(chunk) > 15]
     
-    if not sentences:
+    if not text_chunks:
         return text
-        
-    # Encode question and sentences
-    question_embedding = model.encode(question)
-    sentence_embeddings = model.encode(sentences)
     
-    # Calculate cosine similarities
-    similarities = cosine_similarity(
-        [question_embedding],
-        sentence_embeddings
-    )[0]
+    # Prompt template for relevance detection
+    highlight_prompt = ChatPromptTemplate.from_template("""
+    [INST]Analysera följande textstycke i förhållande till frågan. 
+    Markera bara den mest relevanta meningen med <strong>text</strong> taggar om den är direkt relaterad till frågan.
     
-    # Find most relevant sentences
-    top_indices = np.argsort(similarities)[-top_k:]
+    Fråga: {question}
+    Text: {chunk}
+    
+    Returnera endast den markerade texten eller originalet om inget är relevant.[/INST]
+    """)
+    
     highlighted = []
-    
-    for i, sentence in enumerate(sentences):
-        if i in top_indices:
-            highlighted.append(f"<strong>{sentence}</strong>")
-        else:
-            highlighted.append(sentence)
+    for chunk in text_chunks:
+        # Get Mistral's judgment
+        chain = highlight_prompt | llm | StrOutputParser()
+        result = chain.invoke({"question": question, "chunk": chunk})
+        
+        # Fallback to original if the model didn't highlight
+        highlighted.append(result if '**' in result else chunk)
     
     return ' '.join(highlighted)
 
@@ -92,7 +88,7 @@ def answer_question(question: str, association: int):
     # Prepare source information
     sources = []
     for chunk in relevant_chunks:
-        highlighted = highlight_relevant_sentences(question, chunk.page_content)
+        highlighted = highlight_with_mistral(question, chunk.page_content, llm)
         sources.append({
             "text": highlighted,  # The text of the chunk
             "source": chunk.metadata["source"],  # The source document
