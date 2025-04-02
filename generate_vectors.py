@@ -32,7 +32,7 @@ for path in documents_paths:
     documents.extend(loaded_docs)
 
 # Split documents into chunks for better retrieval
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50, separators=["\n\n", "\n"])
 chunks = text_splitter.split_documents(documents)
 
 # Create embeddings and FAISS index
