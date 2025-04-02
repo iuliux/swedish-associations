@@ -1,10 +1,13 @@
+import re
+import numpy as np
+
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
-from transformers import pipeline
+from sentence_transformers import SentenceTransformer
 
 
 # Load FAISS index
@@ -31,17 +34,37 @@ Kort svar:
     """
 )
 
-# Initialize a QA model to find relevant spans
-qa_model = pipeline("question-answering", model="distilbert-base-multilingual-cased")
+# Load Swedish-optimized model
+model = SentenceTransformer('KBLab/sentence-bert-swedish-cased')
 
-def highlight_relevant_text(question: str, text: str) -> str:
-    """Adds bold markers around the most relevant part of text for the question"""
-    try:
-        result = qa_model(question=question, context=text)
-        start, end = result["start"], result["end"]
-        return text[:start] + "<strong>" + text[start:end] + "</strong>" + text[end:]
-    except:
-        return text  # Fallback if highlighting fails
+def highlight_relevant_sentences(question: str, text: str, top_k: int = 2) -> str:
+    """Highlight sentences most semantically relevant to the question"""
+    sentences = [s for s in re.split(r'(?<=[.!?])\s+', text) if len(s) > 10]
+    
+    if not sentences:
+        return text
+        
+    # Encode question and sentences
+    question_embedding = model.encode(question)
+    sentence_embeddings = model.encode(sentences)
+    
+    # Calculate cosine similarities
+    similarities = cosine_similarity(
+        [question_embedding],
+        sentence_embeddings
+    )[0]
+    
+    # Find most relevant sentences
+    top_indices = np.argsort(similarities)[-top_k:]
+    highlighted = []
+    
+    for i, sentence in enumerate(sentences):
+        if i in top_indices:
+            highlighted.append(f"<strong>{sentence}</strong>")
+        else:
+            highlighted.append(sentence)
+    
+    return ' '.join(highlighted)
 
 # Function to answer questions and retrieve source information
 def answer_question(question: str, association: int):
@@ -68,9 +91,9 @@ def answer_question(question: str, association: int):
     # Prepare source information
     sources = []
     for chunk in relevant_chunks:
-        highlighted_text = highlight_relevant_text(question, chunk.page_content)
+        highlighted = highlight_relevant_sentences(question, chunk.page_content)
         sources.append({
-            "text": highlighted_text,  # The text of the chunk
+            "text": highlighted,  # The text of the chunk
             "source": chunk.metadata["source"],  # The source document
             "page": chunk.metadata.get("page", None),  # Add page number if available
         })
