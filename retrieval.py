@@ -55,7 +55,8 @@ def answer_question(question: str, association: int):
         sources.append({
             "text": chunk.page_content,  # The text of the chunk
             "source": chunk.metadata["source"],  # The source document
-            # Add other metadata fields if needed (e.g., page number)
+            # Add page number
+            "page": chunk.metadata.get("page", None),
         })
 
     return {
