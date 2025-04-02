@@ -4,6 +4,7 @@ from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+from transformers import pipeline
 
 
 # Load FAISS index
@@ -30,11 +31,26 @@ Kort svar:
     """
 )
 
+# Initialize a QA model to find relevant spans
+qa_model = pipeline("question-answering", model="distilbert-base-multilingual-cased")
+
+def highlight_relevant_text(question: str, text: str) -> str:
+    """Adds bold markers around the most relevant part of text for the question"""
+    try:
+        result = qa_model(question=question, context=text)
+        start, end = result["start"], result["end"]
+        return text[:start] + "<strong>" + text[start:end] + "</strong>" + text[end:]
+    except:
+        return text  # Fallback if highlighting fails
+
 # Function to answer questions and retrieve source information
 def answer_question(question: str, association: int):
     # Retrieve relevant documents based on the association
     retriever = vectorstore.as_retriever(
-        search_kwargs={"filter": {"association": {"$in": ["general", str(association)]}}}
+        search_kwargs={
+            "filter": {"association": {"$in": ["general", str(association)]}},
+            # "k": 3,  # Number of documents to retrieve
+        }
     )
 
     # Define the retrieval and generation chain
@@ -52,8 +68,9 @@ def answer_question(question: str, association: int):
     # Prepare source information
     sources = []
     for chunk in relevant_chunks:
+        highlighted_text = highlight_relevant_text(question, chunk.page_content)
         sources.append({
-            "text": chunk.page_content,  # The text of the chunk
+            "text": highlighted_text,  # The text of the chunk
             "source": chunk.metadata["source"],  # The source document
             "page": chunk.metadata.get("page", None),  # Add page number if available
         })
