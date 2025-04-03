@@ -87,7 +87,7 @@ def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
     min_score = input.get("min_score", 0.5) if isinstance(input, dict) else 0.5
 
     docs_with_scores = []
-    query_embedding = vectorstore.embedding_function(query)
+    query_embedding = embeddings.embed_query(query)
     
     for i, doc in enumerate(vectorstore.docstore._dict.values()):
         # Association filter comes first
