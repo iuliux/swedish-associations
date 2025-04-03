@@ -13,7 +13,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from langchain_core.runnables import chain
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
-from typing import List
+from typing import List, Dict, Any
 
 # Load FAISS index
 def load_vectorstore():
@@ -75,8 +75,14 @@ def highlight_relevant_sentences(question: str, text: str, top_k: int = 2) -> st
 MIN_RELEVANCE_SCORE = 0.6  # Minimum relevance score for a chunk to be considered relevant
 
 @chain
-def filtered_scored_retriever(query: str, association: str, k: int = 4, min_score: float = 0.5) -> List[Document]:
+def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
     """FAISS retriever with pre-filtering and scoring"""
+    # Handle both direct params and LangChain input dict
+    query = input.get("query") if isinstance(input, dict) else input
+    association = input.get("association", "general") if isinstance(input, dict) else "general"
+    k = input.get("k", 4) if isinstance(input, dict) else 4
+    min_score = input.get("min_score", 0.5) if isinstance(input, dict) else 0.5
+
     docs_with_scores = []
     query_embedding = vectorstore.embedding_function(query)
     
@@ -117,10 +123,12 @@ def answer_question(question: str, association: int):
     )
 
     # Retrieve the most relevant chunks
-    relevant_chunks = retriever.invoke(
-        input={"query": question, "association": str(association)},
-        config={"k": 4, "min_score": 0.6}  # Configurable parameters
-    )
+    relevant_chunks = retriever.invoke({
+        "query": question,
+        "association": str(association),
+        "k": 4,
+        "min_score": 0.6
+    })
     answer = question | rag_chain
 
     # Prepare source information
