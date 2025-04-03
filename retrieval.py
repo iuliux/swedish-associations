@@ -1,5 +1,6 @@
 import re
 import numpy as np
+from logger import logger
 
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -14,6 +15,7 @@ from langchain_core.runnables import chain
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from typing import List, Dict, Any
+
 
 # Load FAISS index
 embeddings = HuggingFaceEmbeddings(
@@ -84,7 +86,7 @@ def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
     min_score = input.get("min_score", 0.5) if isinstance(input, dict) else 0.5
 
     docs_with_scores = []
-    query_embedding = embeddings.embed_query(query)
+    query_embedding = vectorstore.embedding_function(query)
     
     for i, doc in enumerate(vectorstore.docstore._dict.values()):
         # Association filter comes first
@@ -105,43 +107,52 @@ def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
 
 # Function to answer questions and retrieve source information
 def answer_question(question: str, association: int):
-    # Retrieve relevant documents based on the association
-    # retriever = vectorstore.as_retriever(
-    #     search_kwargs={
-    #         "filter": {"association": {"$in": ["general", str(association)]}},
-    #         # "k": 3,  # Number of documents to retrieve
-    #     }
-    # )
-    retriever = filtered_scored_retriever
+    try:
+        # Wrap the retriever call with validation
+        if not isinstance(question, str):
+            raise ValueError(f"Question must be string, got {type(question)}")
 
-    # Define the retrieval and generation chain
-    rag_chain = (
-        {"context": retriever, "question": RunnablePassthrough()}
-        | prompt_template
-        | llm
-        | StrOutputParser()
-    )
+        # Retrieve relevant documents based on the association
+        # retriever = vectorstore.as_retriever(
+        #     search_kwargs={
+        #         "filter": {"association": {"$in": ["general", str(association)]}},
+        #         # "k": 3,  # Number of documents to retrieve
+        #     }
+        # )
+        retriever = filtered_scored_retriever
 
-    # Retrieve the most relevant chunks
-    relevant_chunks = retriever.invoke({
-        "query": question,
-        "association": str(association),
-        "k": 4,
-        "min_score": 0.6
-    })
-    answer = question | rag_chain
+        # Define the retrieval and generation chain
+        rag_chain = (
+            {"context": retriever, "question": RunnablePassthrough()}
+            | prompt_template
+            | llm
+            | StrOutputParser()
+        )
 
-    # Prepare source information
-    sources = []
-    for chunk in relevant_chunks:
-        highlighted = highlight_relevant_sentences(question, chunk.page_content)
-        sources.append({
-            "text": highlighted,  # The text of the chunk
-            "source": chunk.metadata["source"],  # The source document
-            "page": chunk.metadata.get("page", None),  # Add page number if available
+        # Retrieve the most relevant chunks
+        relevant_chunks = retriever.invoke({
+            "query": question,
+            "association": lambda x: str(x["association"]),
+            "k": 4,
+            "min_score": 0.6
         })
+        answer = question | rag_chain
 
-    return {
-        "answer": answer,
-        "sources": sources
-    }
+        # Prepare source information
+        sources = []
+        for chunk in relevant_chunks:
+            highlighted = highlight_relevant_sentences(question, chunk.page_content)
+            sources.append({
+                "text": highlighted,  # The text of the chunk
+                "source": chunk.metadata["source"],  # The source document
+                "page": chunk.metadata.get("page", None),  # Add page number if available
+            })
+
+        return {
+            "answer": answer,
+            "sources": sources
+        }
+
+    except Exception as e:
+        logger.error(f"Error in answer_question: {str(e)}\n{traceback.format_exc()}")
+        raise  # Re-raise for the HTTP handler
