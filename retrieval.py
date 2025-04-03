@@ -74,35 +74,28 @@ def highlight_relevant_sentences(question: str, text: str, top_k: int = 2) -> st
 
 MIN_RELEVANCE_SCORE = 0.6  # Minimum relevance score for a chunk to be considered relevant
 
-class FilteredScoredRetriever:
-    def __init__(self, vectorstore: VectorStore):
-        self.vectorstore = vectorstore
+@chain
+def filtered_scored_retriever(query: str, association: str, k: int = 4, min_score: float = 0.5) -> List[Document]:
+    """FAISS retriever with pre-filtering and scoring"""
+    docs_with_scores = []
+    query_embedding = vectorstore.embedding_function(query)
     
-    @chain
-    def __call__(self, query: str, association: str, k: int = 4) -> List[Document]:
-        """Execute filtering BEFORE scoring"""
-        # Step 1: Get filtered candidates using native retriever
-        filtered_retriever = self.vectorstore.as_retriever(
-            search_kwargs={
-                "filter": {"association": {"$in": ["general", association]}},
-                "k": 20  # Get extra candidates for scoring
-            }
-        )
-        candidates = filtered_retriever.invoke(query)
-        
-        # Step 2: Re-score the filtered documents properly
-        query_embedding = self.vectorstore.embedding_function(query)
-        scored_docs = []
-        
-        for doc in candidates:
-            # Calculate proper similarity score
-            doc_embedding = self.vectorstore.embedding_function(doc.page_content)
+    for i, doc in enumerate(vectorstore.docstore._dict.values()):
+        # Association filter comes first
+        if doc.metadata.get("association") in ["general", association]:
+            doc_embedding = vectorstore.index.reconstruct(i)
             score = cosine_similarity([query_embedding], [doc_embedding])[0][0]
-            doc.metadata["score"] = float(score)
-            scored_docs.append((doc, score))
-        
-        # Return top k by score
-        return [doc for doc, _ in sorted(scored_docs, key=lambda x: x[1], reverse=True)[:k]]
+            
+            if score >= min_score:
+                # Create new document to avoid modifying cached version
+                scored_doc = Document(
+                    page_content=doc.page_content,
+                    metadata={**doc.metadata, "score": float(score)}
+                )
+                docs_with_scores.append((scored_doc, score))
+    
+    # Return top k by score
+    return [doc for doc, _ in sorted(docs_with_scores, key=lambda x: x[1], reverse=True)[:k]]
 
 # Function to answer questions and retrieve source information
 def answer_question(question: str, association: int):
@@ -113,7 +106,7 @@ def answer_question(question: str, association: int):
     #         # "k": 3,  # Number of documents to retrieve
     #     }
     # )
-    retriever = FilteredScoredRetriever(vectorstore)
+    retriever = filtered_scored_retriever
 
     # Define the retrieval and generation chain
     rag_chain = (
@@ -124,15 +117,10 @@ def answer_question(question: str, association: int):
     )
 
     # Retrieve the most relevant chunks
-    chunks = retriever(
-        query=question,
-        association=str(association),
-        k=4
+    relevant_chunks = retriever.invoke(
+        input={"query": question, "association": str(association)},
+        config={"k": 4, "min_score": 0.6}  # Configurable parameters
     )
-    relevant_chunks = [
-        chunk for chunk, score in chunks_with_scores 
-        if score >= MIN_RELEVANCE_SCORE
-    ]
     answer = question | rag_chain
 
     # Prepare source information
