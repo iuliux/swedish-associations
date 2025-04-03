@@ -10,6 +10,9 @@ from langchain_core.output_parsers import StrOutputParser
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
+from langchain_core.runnables import chain
+from langchain_core.vectorstores import VectorStore
+from typing import List
 
 # Load FAISS index
 def load_vectorstore():
@@ -68,17 +71,48 @@ def highlight_relevant_sentences(question: str, text: str, top_k: int = 2) -> st
     return ' '.join(highlighted)
 
 
-MIN_RELEVANCE_SCORE = 0.7  # Minimum relevance score for a chunk to be considered relevant
+MIN_RELEVANCE_SCORE = 0.6  # Minimum relevance score for a chunk to be considered relevant
+
+class FilteredScoredRetriever:
+    def __init__(self, vectorstore: VectorStore):
+        self.vectorstore = vectorstore
+    
+    @chain
+    def __call__(self, query: str, association: str, k: int = 4) -> List[Document]:
+        """Execute filtering BEFORE scoring"""
+        # Step 1: Get filtered candidates using native retriever
+        filtered_retriever = self.vectorstore.as_retriever(
+            search_kwargs={
+                "filter": {"association": {"$in": ["general", association]}},
+                "k": 20  # Get extra candidates for scoring
+            }
+        )
+        candidates = filtered_retriever.invoke(query)
+        
+        # Step 2: Re-score the filtered documents properly
+        query_embedding = self.vectorstore.embedding_function(query)
+        scored_docs = []
+        
+        for doc in candidates:
+            # Calculate proper similarity score
+            doc_embedding = self.vectorstore.embedding_function(doc.page_content)
+            score = cosine_similarity([query_embedding], [doc_embedding])[0][0]
+            doc.metadata["score"] = float(score)
+            scored_docs.append((doc, score))
+        
+        # Return top k by score
+        return [doc for doc, _ in sorted(scored_docs, key=lambda x: x[1], reverse=True)[:k]]
 
 # Function to answer questions and retrieve source information
 def answer_question(question: str, association: int):
     # Retrieve relevant documents based on the association
-    retriever = vectorstore.as_retriever(
-        search_kwargs={
-            "filter": {"association": {"$in": ["general", str(association)]}},
-            # "k": 3,  # Number of documents to retrieve
-        }
-    )
+    # retriever = vectorstore.as_retriever(
+    #     search_kwargs={
+    #         "filter": {"association": {"$in": ["general", str(association)]}},
+    #         # "k": 3,  # Number of documents to retrieve
+    #     }
+    # )
+    retriever = FilteredScoredRetriever(vectorstore)
 
     # Define the retrieval and generation chain
     rag_chain = (
@@ -89,10 +123,10 @@ def answer_question(question: str, association: int):
     )
 
     # Retrieve the most relevant chunks
-    chunks_with_scores = sorted(
-        retriever.invoke_with_score(question),
-        key=lambda x: x[1],  # Sort by score
-        reverse=True
+    chunks = retriever(
+        query=question,
+        association=str(association),
+        k=4
     )
     relevant_chunks = [
         chunk for chunk, score in chunks_with_scores 

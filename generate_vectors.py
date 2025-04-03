@@ -37,7 +37,7 @@ chunks = text_splitter.split_documents(documents)
 
 # Create embeddings and FAISS index
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
-vectorstore = FAISS.from_documents(chunks, embeddings)
+vectorstore = FAISS.from_documents(chunks, embeddings, metadatas=[ch.metadata for ch in chunks])
 
 # Save the index
 vectorstore.save_local("faiss_index")
