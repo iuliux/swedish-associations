@@ -3,7 +3,7 @@ import numpy as np
 
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_ollama import Ollama
+from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
@@ -19,7 +19,7 @@ def load_vectorstore():
 vectorstore = load_vectorstore()
 
 # Initialize Ollama LLM
-llm = Ollama(model="associations-rag")#, temperature=0.3)  # Using your custom trained model
+llm = OllamaLLM(model="associations-rag")#, temperature=0.3)  # Using your custom trained model
 
 # Define the prompt template
 prompt_template = ChatPromptTemplate.from_template(
