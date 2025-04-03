@@ -89,7 +89,11 @@ def answer_question(question: str, association: int):
     )
 
     # Retrieve the most relevant chunks
-    chunks_with_scores = retriever.get_relevant_documents_with_score(question, k=5)
+    chunks_with_scores = sorted(
+        retriever.invoke_with_score(question),
+        key=lambda x: x[1],  # Sort by score
+        reverse=True
+    )
     relevant_chunks = [
         chunk for chunk, score in chunks_with_scores 
         if score >= MIN_RELEVANCE_SCORE
