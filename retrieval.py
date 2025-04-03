@@ -16,11 +16,11 @@ from langchain_core.vectorstores import VectorStore
 from typing import List, Dict, Any
 
 # Load FAISS index
-def load_vectorstore():
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
-    return FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
-
-vectorstore = load_vectorstore()
+embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    encode_kwargs={'normalize_embeddings': True}
+)
+vectorstore = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
 
 # Initialize Ollama LLM
 llm = OllamaLLM(model="associations-rag")#, temperature=0.3)  # Using your custom trained model
@@ -84,7 +84,7 @@ def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
     min_score = input.get("min_score", 0.5) if isinstance(input, dict) else 0.5
 
     docs_with_scores = []
-    query_embedding = vectorstore.embedding_function(query)
+    query_embedding = embeddings.embed_query(query)
     
     for i, doc in enumerate(vectorstore.docstore._dict.values()):
         # Association filter comes first
