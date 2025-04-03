@@ -11,6 +11,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
 from langchain_core.runnables import chain
+from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from typing import List
 
