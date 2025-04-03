@@ -1,5 +1,6 @@
 import re
 import numpy as np
+import traceback
 from logger import logger
 
 from langchain_community.vectorstores import FAISS

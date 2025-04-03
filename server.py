@@ -1,8 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware  # Import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from retrieval import answer_question  # Import function from retrieval.py
 from logger import logger
+import traceback
 
 
 app = FastAPI()
