@@ -3,7 +3,7 @@ import numpy as np
 
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.llms import Ollama
+from langchain_ollama import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
@@ -19,7 +19,7 @@ def load_vectorstore():
 vectorstore = load_vectorstore()
 
 # Initialize Ollama LLM
-llm = Ollama(model="associations-rag")  # Using your custom trained model
+llm = Ollama(model="associations-rag")#, temperature=0.3)  # Using your custom trained model
 
 # Define the prompt template
 prompt_template = ChatPromptTemplate.from_template(
@@ -67,6 +67,9 @@ def highlight_relevant_sentences(question: str, text: str, top_k: int = 2) -> st
     
     return ' '.join(highlighted)
 
+
+MIN_RELEVANCE_SCORE = 0.7  # Minimum relevance score for a chunk to be considered relevant
+
 # Function to answer questions and retrieve source information
 def answer_question(question: str, association: int):
     # Retrieve relevant documents based on the association
@@ -86,8 +89,12 @@ def answer_question(question: str, association: int):
     )
 
     # Retrieve the most relevant chunks
-    relevant_chunks = retriever.get_relevant_documents(question)
-    answer = rag_chain.invoke(question)
+    chunks_with_scores = retriever.get_relevant_documents_with_score(question, k=5)
+    relevant_chunks = [
+        chunk for chunk, score in chunks_with_scores 
+        if score >= MIN_RELEVANCE_SCORE
+    ]
+    answer = question | rag_chain
 
     # Prepare source information
     sources = []
