@@ -20,7 +20,7 @@ from typing import List, Dict, Any
 
 # Load FAISS index
 embeddings = HuggingFaceEmbeddings(
-    model_name="KB/Swedish-Sentence-BERT",
+    model_name="KBLab/sentence-bert-swedish-cased",
     encode_kwargs={'normalize_embeddings': True}
 )
 vectorstore = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
