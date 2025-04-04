@@ -119,12 +119,6 @@ def answer_question(question: str, association: int):
             raise ValueError(f"Question must be string, got {type(question)}")
 
         # Retrieve relevant documents based on the association
-        # retriever = vectorstore.as_retriever(
-        #     search_kwargs={
-        #         "filter": {"association": {"$in": ["general", str(association)]}},
-        #         # "k": 3,  # Number of documents to retrieve
-        #     }
-        # )
         retriever = filtered_scored_retriever
 
         # Define the retrieval and generation chain
@@ -153,7 +147,6 @@ def answer_question(question: str, association: int):
         context_text = "\n\n".join(doc.page_content for doc in relevant_chunks)
         # Invoke the chain with the question and association
         answer = rag_chain.invoke({
-            "context": context_text,
             "question": question,
             "association": str(association)
         })
