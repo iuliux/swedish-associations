@@ -62,10 +62,6 @@ def ask_question(req: QuestionRequest):
             "input_association": req.association_id,
             "error": str(e),
             "traceback": traceback.format_exc(),
-            "vectorstore_info": {
-                "doc_count": len(vectorstore.docstore._dict) if hasattr(vectorstore, 'docstore') else None,
-                "index_type": type(vectorstore.index).__name__ if hasattr(vectorstore, 'index') else None
-            }
         }
         
         logger.error(f"RAG pipeline failed: {error_context}")
