@@ -136,8 +136,11 @@ def answer_question(question: str, association: int):
         )
 
         # Retrieve the most relevant chunks
+        if not isinstance(question, str) or not question.strip():
+            raise ValueError("Invalid question: must be a non-empty string")
+
         relevant_chunks = retriever.invoke({
-            "query": question,
+            "query": question.strip(),  # ✅ Ensure it's a valid string
             "association": str(association),
             "k": 4,
             "min_score": 0.9
