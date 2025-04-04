@@ -92,6 +92,8 @@ def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
     for i, doc in enumerate(vectorstore.docstore._dict.values()):
         # Association filter comes first
         if doc.metadata.get("association") in ["general", association]:
+            # Log the document ID and its metadata
+            logger.debug(f"Document ID: {i}, Metadata: {doc.metadata}")
             doc_embedding = vectorstore.index.reconstruct(i)
             score = cosine_similarity([query_embedding], [doc_embedding])[0][0]
             
