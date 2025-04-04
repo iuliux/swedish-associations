@@ -98,7 +98,7 @@ def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
             # Log the document ID and its metadata
             doc_embedding = vectorstore.index.reconstruct(i)
             score = cosine_similarity([query_embedding], [doc_embedding])[0][0]
-            logger.debug(f"Document ID: {i}, Metadata: {doc.metadata}, Score: {score}")
+            logger.debug(f"Document ID: {i}, Score: {score}\n{doc.page_content[:100]}\n---\n")
             
             if score < min_score:
                 # Create new document to avoid modifying cached version
