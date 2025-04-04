@@ -86,6 +86,9 @@ def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
     k = input.get("k", 4) if isinstance(input, dict) else 4
     min_score = input.get("min_score", 0.5) if isinstance(input, dict) else 0.5
 
+    # Logging the input parameters
+    logger.debug(f"Query: {query}, Association: {association}, k: {k}, min_score: {min_score}")
+
     docs_with_scores = []
     query_embedding = embeddings.embed_query(query)
     
