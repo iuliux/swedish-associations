@@ -42,6 +42,10 @@ Kort svar:
     """
 )
 
+
+MIN_CHUNK_SCORE = 0.4  # Minimum relevance score for a chunk to be considered relevant
+MIN_SENTENCE_SCORE = 0.45  # Minimum relevance score for a chunk to be considered relevant
+
 # Load Swedish-optimized model
 model = SentenceTransformer('KBLab/sentence-bert-swedish-cased')
 
@@ -69,7 +73,8 @@ def highlight_relevant_sentences(question: str, text: str, top_k: int = 2) -> st
     for i, sentence in enumerate(sentences):
         # Logging the similarity score for each sentence
         logger.debug(f"{'TOP ' if i in top_indices else ''}Sentence: {sentence}\nSimilarity: {similarities[i]}\n\n")
-        if i in top_indices:
+        # if i in top_indices:
+        if similarities[i] >= MIN_SENTENCE_SCORE:
             highlighted.append(f"<strong>{sentence}</strong>")
         else:
             highlighted.append(sentence)
@@ -77,7 +82,6 @@ def highlight_relevant_sentences(question: str, text: str, top_k: int = 2) -> st
     return ' '.join(highlighted)
 
 
-MIN_RELEVANCE_SCORE = 0.6  # Minimum relevance score for a chunk to be considered relevant
 
 @chain
 def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
@@ -140,7 +144,7 @@ def answer_question(question: str, association: int):
             "question": question.strip(),
             "association": str(association),
             "k": 4,
-            "min_score": 0.4
+            "min_score": MIN_CHUNK_SCORE
         })
 
         # Convert retrieved documents into a single text block
