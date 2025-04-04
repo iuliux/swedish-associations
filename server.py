@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware  # Import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from retrieval import answer_question  # Import function from retrieval.py
+from retrieval import answer_question, MIN_CHUNK_SCORE
 from logger import logger
 import traceback
 
@@ -45,16 +45,18 @@ async def global_exception_handler(request: Request, exc: Exception):
 class QuestionRequest(BaseModel):
     question: str
     association_id: int
+    treshold: float = MIN_CHUNK_SCORE  # Optional field for threshold
     debug: bool = False  # Optional field to enable debug mode
 
 @app.post("/ask")
 def ask_question(req: QuestionRequest):
     try:
-        result = answer_question(req.question, req.association_id)
+        result = answer_question(req.question, req.association_id, req.treshold)
         return {
             "question": req.question,
             "answer": result["answer"],
-            "sources": result["sources"]
+            "sources": result["sources"],
+            "treshold": req.treshold,
         }
     except Exception as e:
         # Log the full error with context
