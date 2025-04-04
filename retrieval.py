@@ -146,8 +146,8 @@ def answer_question(question: str, association: int):
             "min_score": 0.9
         })
 
-        if not isinstance(question, str) or not question.strip():
-            raise ValueError("Invalid question: must be a non-empty string")
+        # Log question
+        logger.debug(f"----------- Question: {question}, Association: {association}")
 
         # Convert retrieved documents into a single text block
         context_text = "\n\n".join(doc.page_content for doc in relevant_chunks)
