@@ -96,9 +96,9 @@ def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
         # Association filter comes first
         if doc.metadata.get("association") in ["general", association]:
             # Log the document ID and its metadata
-            logger.debug(f"Document ID: {i}, Metadata: {doc.metadata}")
             doc_embedding = vectorstore.index.reconstruct(i)
             score = cosine_similarity([query_embedding], [doc_embedding])[0][0]
+            logger.debug(f"Document ID: {i}, Metadata: {doc.metadata}, Score: {score}")
             
             if score >= min_score:
                 # Create new document to avoid modifying cached version
@@ -140,9 +140,6 @@ def answer_question(question: str, association: int):
             "k": 4,
             "min_score": 0.9
         })
-
-        # Log question
-        logger.debug(f"----------- Question: {question}, Association: {association}")
 
         # Convert retrieved documents into a single text block
         context_text = "\n\n".join(doc.page_content for doc in relevant_chunks)
