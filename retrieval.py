@@ -100,7 +100,7 @@ def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
             score = cosine_similarity([query_embedding], [doc_embedding])[0][0]
             logger.debug(f"Document ID: {i}, Score: {score}\n{doc.page_content[:500]}\n---\n")
             
-            if score < min_score:
+            if score >= min_score:
                 # Create new document to avoid modifying cached version
                 scored_doc = Document(
                     page_content=doc.page_content,
@@ -158,6 +158,7 @@ def answer_question(question: str, association: int):
                 "text": highlighted,  # The text of the chunk
                 "source": chunk.metadata["source"],  # The source document
                 "page": chunk.metadata.get("page", None),  # Add page number if available
+                "score": chunk.metadata["score"],  # The relevance score
             })
 
         return {
