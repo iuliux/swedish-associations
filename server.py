@@ -45,6 +45,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 class QuestionRequest(BaseModel):
     question: str
     association_id: int
+    debug: bool = False  # Optional field to enable debug mode
 
 @app.post("/ask")
 def ask_question(req: QuestionRequest):
