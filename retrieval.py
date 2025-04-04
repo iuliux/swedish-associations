@@ -118,7 +118,7 @@ def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
     return [doc for doc, _ in sorted(docs_with_scores, key=lambda x: x[1], reverse=True)[:k]]
 
 # Function to answer questions and retrieve source information
-def answer_question(question: str, association: int, treshold: float = MIN_CHUNK_SCORE) -> Dict[str, Any]:
+def answer_question(question: str, association: int, threshold: float = MIN_CHUNK_SCORE) -> Dict[str, Any]:
     try:
         # Wrap the retriever call with validation
         if not isinstance(question, str):
@@ -144,7 +144,7 @@ def answer_question(question: str, association: int, treshold: float = MIN_CHUNK
             "question": question.strip(),
             "association": str(association),
             "k": 4,
-            "min_score": treshold
+            "min_score": threshold
         })
 
         # Convert retrieved documents into a single text block

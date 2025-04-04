@@ -45,18 +45,18 @@ async def global_exception_handler(request: Request, exc: Exception):
 class QuestionRequest(BaseModel):
     question: str
     association_id: int
-    treshold: float = MIN_CHUNK_SCORE  # Optional field for threshold
+    threshold: float = MIN_CHUNK_SCORE  # Optional field for threshold
     debug: bool = False  # Optional field to enable debug mode
 
 @app.post("/ask")
 def ask_question(req: QuestionRequest):
     try:
-        result = answer_question(req.question, req.association_id, req.treshold)
+        result = answer_question(req.question, req.association_id, req.threshold)
         return {
             "question": req.question,
             "answer": result["answer"],
             "sources": result["sources"],
-            "treshold": req.treshold,
+            "threshold": req.threshold,
         }
     except Exception as e:
         # Log the full error with context
