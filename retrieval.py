@@ -137,7 +137,7 @@ def answer_question(question: str, association: int):
             "k": 4,
             "min_score": 0.6
         })
-        answer = question | rag_chain
+        answer = rag_chain.invoke(question)
 
         # Prepare source information
         sources = []
