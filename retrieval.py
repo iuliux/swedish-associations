@@ -135,7 +135,7 @@ def answer_question(question: str, association: int):
             "query": question,
             "association": lambda x: str(association),
             "k": 4,
-            "min_score": 0.6
+            "min_score": 0.9
         })
         answer = rag_chain.invoke(question)
 
