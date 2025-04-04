@@ -132,7 +132,7 @@ def answer_question(question: str, association: int):
 
         # Retrieve the most relevant chunks
         relevant_chunks = retriever.invoke({
-            "query": lambda x: question,
+            "query": question,
             "association": lambda x: str(association),
             "k": 4,
             "min_score": 0.6
