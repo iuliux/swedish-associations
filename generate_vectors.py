@@ -32,12 +32,12 @@ for path in documents_paths:
     documents.extend(loaded_docs)
 
 # Split documents into chunks for better retrieval
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50, separators=["\n\n", "\n"])
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100, separators=["\n\n", "\n", ". "])
 chunks = text_splitter.split_documents(documents)
 
 # Create embeddings and FAISS index
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
-vectorstore = FAISS.from_documents(chunks, embeddings, metadatas=[ch.metadata for ch in chunks])
+vectorstore = FAISS.from_documents(chunks, embeddings)
 
 # Save the index
 vectorstore.save_local("faiss_index")
