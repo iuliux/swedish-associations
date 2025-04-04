@@ -100,7 +100,7 @@ def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
             score = cosine_similarity([query_embedding], [doc_embedding])[0][0]
             logger.debug(f"Document ID: {i}, Metadata: {doc.metadata}, Score: {score}")
             
-            if score >= min_score:
+            if score < min_score:
                 # Create new document to avoid modifying cached version
                 scored_doc = Document(
                     page_content=doc.page_content,
@@ -138,7 +138,7 @@ def answer_question(question: str, association: int):
             "question": question.strip(),
             "association": str(association),
             "k": 4,
-            "min_score": 0.9
+            "min_score": 0.4
         })
 
         # Convert retrieved documents into a single text block
