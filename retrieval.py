@@ -129,7 +129,7 @@ def answer_question(question: str, association: int):
 
         # Define the retrieval and generation chain
         rag_chain = (
-            {"context": retriever, "question": RunnablePassthrough()}
+            {"context": retriever, "question": RunnablePassthrough(), "association": RunnablePassthrough()}
             | prompt_template
             | llm
             | StrOutputParser()
@@ -138,11 +138,19 @@ def answer_question(question: str, association: int):
         # Retrieve the most relevant chunks
         relevant_chunks = retriever.invoke({
             "query": question,
-            "association": lambda x: str(association),
+            "association": str(association),
             "k": 4,
             "min_score": 0.9
         })
-        answer = rag_chain.invoke(question)
+
+        # Convert retrieved documents into a single text block
+        context_text = "\n\n".join(doc.page_content for doc in relevant_chunks)
+        # Invoke the chain with the question and association
+        answer = rag_chain.invoke({
+            "context": context_text,
+            "question": question,
+            "association": str(association)
+        })
 
         # Prepare source information
         sources = []
