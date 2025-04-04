@@ -36,7 +36,7 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=10
 chunks = text_splitter.split_documents(documents)
 
 # Create embeddings and FAISS index
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+embeddings = HuggingFaceEmbeddings(model_name="KBLab/sentence-bert-swedish-cased")
 vectorstore = FAISS.from_documents(chunks, embeddings)
 
 # Save the index
