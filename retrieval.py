@@ -68,7 +68,7 @@ def highlight_relevant_sentences(question: str, text: str, top_k: int = 2) -> st
     
     for i, sentence in enumerate(sentences):
         # Logging the similarity score for each sentence
-        logger.debug(f"Sentence: {sentence}\nSimilarity: {similarities[i]}\n\n")
+        logger.debug(f"{'TOP ' if i in top_indices else ''}Sentence: {sentence}\nSimilarity: {similarities[i]}\n\n")
         if i in top_indices:
             highlighted.append(f"<strong>{sentence}</strong>")
         else:
