@@ -59,7 +59,7 @@ def ask_question(req: QuestionRequest):
         # Log the full error with context
         error_context = {
             "input_question": req.question,
-            "input_association": req.association,
+            "input_association": req.association_id,
             "error": str(e),
             "traceback": traceback.format_exc(),
             "vectorstore_info": {
