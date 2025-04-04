@@ -67,12 +67,12 @@ def highlight_relevant_sentences(question: str, text: str, top_k: int = 2) -> st
     )[0]
     
     # Find most relevant sentences
-    top_indices = np.argsort(similarities)[-top_k:]
+    # top_indices = np.argsort(similarities)[-top_k:]
     highlighted = []
     
     for i, sentence in enumerate(sentences):
         # Logging the similarity score for each sentence
-        logger.debug(f"{'TOP ' if i in top_indices else ''}Sentence: {sentence}\nSimilarity: {similarities[i]}\n\n")
+        # logger.debug(f"{'TOP ' if i in top_indices else ''}Sentence: {sentence}\nSimilarity: {similarities[i]}\n\n")
         # if i in top_indices:
         if similarities[i] >= MIN_SENTENCE_SCORE:
             highlighted.append(f"<strong>{sentence}</strong>")
@@ -104,7 +104,7 @@ def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
             # Log the document ID and its metadata
             doc_embedding = vectorstore.index.reconstruct(i)
             score = cosine_similarity([query_embedding], [doc_embedding])[0][0]
-            # logger.debug(f"Document ID: {i}, Score: {score}\n{doc.page_content[:500]}\n---\n")
+            logger.debug(f"Document ID: {i}, Score: {score}\n{doc.page_content[:500]}\n---\n")
             
             if score >= min_score:
                 # Create new document to avoid modifying cached version
