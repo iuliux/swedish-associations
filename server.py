@@ -52,9 +52,13 @@ class QuestionRequest(BaseModel):
 def ask_question(req: QuestionRequest):
     try:
         result = answer_question(req.question, req.association_id, req.threshold)
+        answer = result["answer"]
+        # If no sources found, return a specific message
+        if not result["sources"]:
+            answer = "Kunde tyvärr inte hitta relevant information på din fråga. Prova gärna igen med en ny formulering"
         return {
             "question": req.question,
-            "answer": result["answer"],
+            "answer": answer,
             "sources": result["sources"],
             "threshold": req.threshold,
         }
