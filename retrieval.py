@@ -107,6 +107,9 @@ def filtered_scored_retriever(input: Dict[str, Any]) -> List[Document]:
             # logger.debug(f"Document: {doc.metadata.get('source')}, Score: {score}\n{doc.page_content[:500]}\n---\n")
             # if doc.metadata.get('source') == 'Stadgar.pdf':
             #     logger.debug(f"Document: {doc.metadata.get('source')}, Score: {score}\n{doc.page_content}\n---\n")
+            # Demote general documents
+            if doc.metadata.get("association")  == "general":
+                score -= 0.2
 
             if score >= min_score:
                 # Create new document to avoid modifying cached version
