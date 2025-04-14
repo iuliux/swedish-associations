@@ -11,7 +11,7 @@ documents_paths = [
     "documents/3/Stadgar.pdf",
     "documents/3/ordningsregler-2023.pdf",
     "documents/7/Stadgar.pdf",
-    "documents/8/stadgar.pdf",
+    "documents/8/stadgar.txt",
     "documents/8/Ordningsregler.pdf",
 ]
 
@@ -33,7 +33,6 @@ for path in documents_paths:
     for doc in loaded_docs:
         doc.metadata["association"] = "general" if len(path_split) == 2 else path_split[1]
         doc.metadata["source"] = path_split[-1]
-        print(f'Loaded document from {path}: {doc.metadata["association"]}, {doc.metadata["source"]}')
     
     documents.extend(loaded_docs)
 
