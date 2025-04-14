@@ -32,12 +32,13 @@ llm = OllamaLLM(model="associations-rag")#, temperature=0.3)  # Using your custo
 prompt_template = ChatPromptTemplate.from_template(
     """
 Du är en AI som svarar på frågor på svenska med hjälp av juridiska dokument från bostadsrättsföreningar.
+Person som frågar äger en bostadsrätt.
 Om du inte vet svaret, säg att du inte vet.
 Svar måste vara på svenska. Använd följande information för att besvara frågan:
 
 {context}
 
-Fråga: Strikt baserat på dokumenten, {question}
+Fråga: Strikt baserat på dokumenten, vad gäller vid {question}
 Kort svar:
     """
 )
