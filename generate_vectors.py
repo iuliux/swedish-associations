@@ -8,6 +8,11 @@ documents_paths = [
     "documents/Bostadsrattslagen.txt",
     "documents/5/Stadgar.pdf",
     "documents/5/ordningsregler-2023.pdf",
+    "documents/3/Stadgar.pdf",
+    "documents/3/ordningsregler-2023.pdf",
+    "documents/7/Stadgar.pdf",
+    "documents/8/stadgar.pdf",
+    "documents/8/Ordningsregler.pdf",
 ]
 
 # Load documents dynamically
@@ -28,6 +33,7 @@ for path in documents_paths:
     for doc in loaded_docs:
         doc.metadata["association"] = "general" if len(path_split) == 2 else path_split[1]
         doc.metadata["source"] = path_split[-1]
+        print(f'Loaded document from {path}: {doc.metadata["association"]}, {doc.metadata["source"]}')
     
     documents.extend(loaded_docs)
 
@@ -45,7 +51,6 @@ vectorstore.save_local("faiss_index")
 # Print details of vectorstore, like all documents, metadata, etc.
 # Get all unique source documents
 unique_sources = set()
-unique_assoc = set()
 for doc in vectorstore.docstore._dict.values():
     unique_sources.add(f'{doc.metadata["association"]} / {doc.metadata["source"]}')
 
