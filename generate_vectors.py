@@ -13,6 +13,8 @@ documents_paths = [
     "documents/7/Stadgar.pdf",
     "documents/8/stadgar.txt",
     "documents/8/Ordningsregler.pdf",
+    "documents/9/Stadgar.pdf",
+    "documents/9/Trivselregler.txt",
 ]
 
 # Load documents dynamically
