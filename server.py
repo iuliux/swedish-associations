@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware  # Import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from retrieval import answer_question, MIN_CHUNK_SCORE
+from retrieval import answer_question, translate_answer, MIN_CHUNK_SCORE
 from logger import logger
 import traceback
 
