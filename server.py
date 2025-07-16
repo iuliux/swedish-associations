@@ -45,6 +45,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 class QuestionRequest(BaseModel):
     question: str
     association_id: int
+    language: str # Optional field for language
     threshold: float = MIN_CHUNK_SCORE  # Optional field for threshold
     debug: bool = False  # Optional field to enable debug mode
 
@@ -56,6 +57,13 @@ def ask_question(req: QuestionRequest):
         # If no sources found, return a specific message
         if not result["sources"]:
             answer = "Kunde tyvärr inte hitta relevant information på din fråga. Prova gärna igen med en ny formulering"
+
+        # Check if the answer needs translation
+        if req.language and req.language.lower() == "en":
+            answer = translate_answer(answer, req.language)
+            # In a real application, you would call a translation service here
+            logger.info(f"Translated answer to {req.language}: {answer}")
+
         return {
             "question": req.question,
             "answer": answer,

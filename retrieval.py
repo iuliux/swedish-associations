@@ -43,6 +43,17 @@ Kort svar:
     """
 )
 
+translation_prompt_template = ChatPromptTemplate.from_template(
+    """
+Du är en AI som översätter svar till engelska.
+Använd följande information för att översätta svaret:
+
+{answer}
+
+Engelska svar:
+    """
+)
+
 
 MIN_CHUNK_SCORE = 0.4  # Minimum relevance score for a chunk to be considered relevant
 MIN_SENTENCE_SCORE = 0.45  # Minimum relevance score for a chunk to be considered relevant
@@ -181,3 +192,14 @@ def answer_question(question: str, association: int, threshold: float = MIN_CHUN
     except Exception as e:
         logger.error(f"Error in answer_question: {str(e)}\n{traceback.format_exc()}")
         raise  # Re-raise for the HTTP handler
+
+def translate_answer(answer: str, language: str) -> str:
+    """Translate the answer to the specified language using the same LLM"""
+    translate_chain = (
+        {"answer": RunnablePassthrough()}
+        | translation_prompt_template
+        | llm
+        | StrOutputParser()
+    )
+
+    return translate_chain.invoke({"answer": answer})
