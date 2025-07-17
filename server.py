@@ -45,7 +45,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 class QuestionRequest(BaseModel):
     question: str
     association_id: int
-    language: str # Optional field for language
+    language: str = None # Optional field for language
     threshold: float = MIN_CHUNK_SCORE  # Optional field for threshold
     debug: bool = False  # Optional field to enable debug mode
 
